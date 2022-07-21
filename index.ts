@@ -4,22 +4,28 @@ type Pipe = <X extends (...args: any[]) => ReturnType<X>, P extends unknown[]>(
     func: X,
     ...params: P
 ) => {
-    value: ReturnType<X>;
+    execute: () => ReturnType<X>;
     pipe: Pipe;
 };
 
-export default function pipe<T>(value: T[]): {
-    value: T[];
+export default function pipe<T extends Array<any>>(value: T): {
+    execute: () => T;
     pipe: Pipe;
 } {
-    function pipe<X extends (...args: any[]) => ReturnType<X>, P extends T[]>(func: X, ...params: P) {
-        let _value: ReturnType<X> = func(value, ...params);
-        value = _value as T[];
+    let functions: ((...args: any[]) => any)[] = [];
+    let params: Array<any>[] = [];
+    function execute() {
+        return functions.reduce((prev, curr, idx) => curr(prev, ...params[idx]), value);
+    }
+
+    function pipe<X extends (...args: any[]) => ReturnType<X>, P extends T>(func: X, ...param: P) {
+        functions.push(func);
+        params.push(param);
         return {
-            value: _value,
+            execute,
             pipe
         };
     };
 
-    return { value, pipe: pipe as Pipe };
+    return { execute, pipe: pipe as Pipe };
 }
