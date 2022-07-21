@@ -1,0 +1,24 @@
+{
+    "name": "@discall/simple-pipe",
+    "version": "1.0.0",
+    "description": "a simple pipe function",
+    "main": "index.ts",
+    "scripts": {
+        "test": "bun run test/index.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/rexwu1104/simple-pipe.git"
+    },
+    "keywords": [
+        "pipe",
+        "functional",
+        "simple"
+    ],
+    "author": "rexwu1104",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/rexwu1104/simple-pipe/issues"
+    },
+    "homepage": "https://github.com/rexwu1104/simple-pipe#readme"
+}
