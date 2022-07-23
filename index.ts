@@ -15,7 +15,7 @@ export default function pipe<T>(value: T): {
     async function reduce() {
         let result: T = value;
         for (const idx in functions) {
-            let v = functions[idx](...params[idx]);
+            let v = functions[idx](result, ...params[idx]);
             if (v instanceof Promise)
                 v = await v;
             result = v;
