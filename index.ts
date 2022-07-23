@@ -17,7 +17,7 @@ export default function pipe<T>(value: T): {
         for (const idx in functions) {
             let v = functions[idx](...params[idx]);
             if (v instanceof Promise)
-                await v;
+                v = await v;
             result = v;
         }
         return result;
