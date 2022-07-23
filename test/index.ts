@@ -1,7 +1,7 @@
 import pipe from "..";
 
-export const map = function <T>(arr: Array<T>, cb: Parameters<Array<T>["map"]>[0]): unknown {
-    return Array.prototype.map.call(arr, cb);
+export const map = function <T>(arr: Array<T>, cb: Parameters<Array<T>["map"]>[0]): ReturnType<typeof cb> {
+    return arr.map(cb);
 }
 
 console.log(
