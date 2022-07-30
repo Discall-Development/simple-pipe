@@ -4,6 +4,8 @@ a simple pipe function
 ## Why should I use simple-pipe
 - Support async function
 - very light and result storable
+- two mode for use
+- if have promise, must use `await` or `.then`
 
 ## Install
 ```
