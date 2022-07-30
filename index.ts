@@ -6,28 +6,32 @@ type Pipe = <X extends (...args: any[]) => ReturnType<X>, P extends unknown[]>(
     pipe: Pipe;
 };
 
-export default function pipe<T>(value: T): {
-    execute: () => Promise<T>;
+type Length<T extends any[]> = T extends { length: infer L extends number } ? L : 0;
+type LastFunction<F extends (((...args: any[]) => any) | ((...args: any[]) => any)[])[]> = F extends [arg: any, ...rest: infer U] ? F[Length<U>] : F[0];
+type FunctionReturnType<F extends ((...args: any[]) => any) | [(...args: any) => any, ...any[]]> = F extends [arg: infer T extends (...args: any[]) => any, ...rest: any[]] ? ReturnType<T> : F extends (...args: any[]) => any ? ReturnType<F> : never;
+
+export default function pipechain<T>(value: T): {
+    execute: () => Promise<T> | T;
     pipe: Pipe;
 } {
     let functions: (((...args: any[]) => any) | ((...args: any[]) => Promise<any>))[] = [];
     let params: Array<any>[] = [];
-    async function reduce() {
-        let result: T = value;
-        for (const idx in functions) {
-            let v = functions[idx](result, ...params[idx]);
-            if (v instanceof Promise)
-                v = await v;
-            result = v;
-        }
-        return result;
-    }
+    let promise: boolean = false;
 
-    async function execute() {
-        return await reduce();
+    function execute() {
+        if (promise)
+            return functions.reduce((p: any, c, idx) => {
+                if (typeof p === "object" && p.then !== undefined)
+                    return p.then(v => c(v, ...params[idx]));
+                return c(p, ...params[idx]);
+            }, value);
+        return functions.reduce((p, c, idx) => c(p, ...params[idx]), value);
     }
 
     function pipe<X extends (...args: any[]) => ReturnType<X>, P extends T[]>(func: X, ...param: P) {
+        if (!promise && isPromise(func))
+            promise = true;
+
         functions.push(func);
         params.push(param);
         return {
@@ -37,4 +41,29 @@ export default function pipe<T>(value: T): {
     };
 
     return { execute, pipe: pipe as Pipe };
+}
+
+export function pipeline<T extends (((...args: any[]) => any) | [((...args: any[]) => any), ...any[]])[]>(...funcs: T): {
+    execute: (value: any) => Promise<FunctionReturnType<LastFunction<T>>> | FunctionReturnType<LastFunction<T>>;
+} {
+    return {
+        execute: (value: any) => funcs.reduce((p, c) => {
+            let f, ps;
+            if (Array.isArray(c))
+                f = c[0], ps = c.slice(1);
+            else
+                f = c, ps = [];
+
+            if (typeof p === "object" && p.then !== undefined)
+                return p.then(v => f(v, ...ps));
+            return f(p, ...ps);
+        }, value)
+    }
+}
+
+function isPromise(func: any) {
+    if (func.constructor.name === "AsyncFunction" && func() instanceof Promise)
+        return true;
+
+    return false;
 }

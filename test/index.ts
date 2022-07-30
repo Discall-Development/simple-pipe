@@ -1,11 +1,11 @@
-import pipe from "..";
+import pipe, {pipeline} from "..";
 
 const map = function <T>(arr: Array<T>, cb: Parameters<Array<T>["map"]>[0]): ReturnType<typeof cb> {
     return arr.map(cb);
 }
 
 function promiseTest(arr: any[]) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _) => {
         let iter = arr[Symbol.iterator]();
         setInterval(function _() {
             let obj = iter.next();
@@ -28,5 +28,11 @@ console.log(
         .execute()
 )
 
-console.log(map([1, 2, 3], (v) => v * 2));
-console.log(await pipe([1, 2, 3]).execute())
+console.log(
+    await pipeline(
+        [map, (v: number) => v * 2],
+        promiseTest,
+        asyncTest,
+        (arr: number[]) => [...arr, 40]
+    ).execute([1, 2, 3])
+)
