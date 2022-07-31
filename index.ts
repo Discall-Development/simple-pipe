@@ -20,9 +20,9 @@ export default function pipechain<T>(value: T): {
 
     function execute() {
         if (promise)
-            return functions.reduce((p: any, c, idx) => {
-                if (typeof p === "object" && p.then !== undefined)
-                    return p.then(v => c(v, ...params[idx]));
+            return functions.reduce((p: T | Promise<T>, c, idx) => {
+                if (p instanceof Promise)
+                    return p.then((v: T) => c(v, ...params[idx]));
                 return c(p, ...params[idx]);
             }, value);
         return functions.reduce((p, c, idx) => c(p, ...params[idx]), value);
@@ -48,14 +48,14 @@ export function pipeline<T extends (((...args: any[]) => any) | [((...args: any[
 } {
     return {
         execute: (value: any) => funcs.reduce((p, c) => {
-            let f, ps;
+            let f: (...args: any[]) => any, ps: any[];
             if (Array.isArray(c))
                 f = c[0], ps = c.slice(1);
             else
                 f = c, ps = [];
 
-            if (typeof p === "object" && p.then !== undefined)
-                return p.then(v => f(v, ...ps));
+            if (p instanceof Promise)
+                return p.then((v: any) => f(v, ...ps));
             return f(p, ...ps);
         }, value)
     }
